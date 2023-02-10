@@ -14,15 +14,27 @@ const port = process.env.PORT || 5000;
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.q89u4if.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
-console.log('db connected')
-client.connect(err => {
-    const collection = client.db("test").collection("devices");
-    // perform actions on the collection object
-  client.close();
-});
+
+
 app.get('/',(req,res)=>{
-    res.send('Hello World !');
-});
+    res.send('Hello World')
+})
+
+async function run (){
+    try{
+        await client.connect();
+        const collection = client.db("product_collection").collection("products");
+        app.get('/products',async(req,res)=>{
+            const query = {};
+            const cursor = collection.find(query);
+            const products = await cursor.toArray();
+            res.send(products);
+        });
+    }finally{
+        // client.close();
+    }
+}
+run().catch(console.dir);
 
 
 
