@@ -33,6 +33,16 @@ async function run (){
             res.send(products);
         });
 
+
+        // get product categories
+        app.get('/product/categories', async(req,res)=>{
+            const query = {};
+            const cursor = collection.find(query).project({Category: 1});
+            const productCategories = await cursor.toArray();
+            res.send(productCategories);
+        })
+
+
         // get single product data
         app.get('/product/:id',async(req,res)=>{
             const id =  req.params.id;
@@ -45,15 +55,10 @@ async function run (){
 
 
         // post order
-        app.post('/order',async(req,res)=>{
+        app.post('/order/:id',async(req,res)=>{
+            const id = req.params.id;
             const order = req.body;
-            // console.log(order)
-            // const query = {item:order.item};
-            // const exist = await orderCollection.findOne(query);
-            // console.log(exist)
-            // // if(exist){
-            // //     return res.send({success: false});
-            // // };
+
             const result = await orderCollection.insertOne(order);
             return res.send({success: true, result})
         });
@@ -74,6 +79,37 @@ async function run (){
             res.send(result);
         })
 
+
+
+        // add new product
+        app.post('/new_product', async(req,res)=>{
+            const newProduct = req.body;
+            const result = await collection.insertOne(newProduct);
+            res.send( result)
+            console.log(newProduct)
+        });
+
+        // get single product details for edit product
+        app.get('/product/edit-product/:id',async(req,res)=>{
+            const id =  req.params.id;
+
+            const options = {};
+            const query = {MODEL_ID: id};
+            const product = await collection.findOne(query,options);
+            res.send(product);
+        });
+        // edit product
+        app.put('/product/edit-product/:product_Id',async(req,res)=>{
+            const productId = req.params.product_Id;
+            const updatedProductDetails = req.body;
+            const filter = {_id: new ObjectId(productId)};
+            const options = {upsert: true};
+            const updateDoc = {
+                $set: updatedProductDetails
+            };
+            const result = await collection.updateOne(filter,updateDoc,options);
+            res.send(result);
+        })
 
         // delete product from admin dashBoard
         app.delete('/product/:id',async(req,res)=>{
