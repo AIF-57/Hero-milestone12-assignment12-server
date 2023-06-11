@@ -54,6 +54,28 @@ async function run (){
             const product = await collection.findOne(query,options);
             res.send(product);
         });
+        // updating remaining quantity after order placed
+        app.put('/product/:id',async(req,res)=>{
+            const id =  req.params.id;
+            console.log(id);
+            const quantity = req.body;
+            const remainingQuantity = quantity.remainingQuantity;
+            console.log(remainingQuantity);
+
+
+            const filter = {MODEL_ID: id};
+            const options = {upsert: true};
+            const updateDoc = {
+                $set: {
+                    AVAILABILITY : remainingQuantity
+                }
+            };
+            const result = await collection.updateOne(filter,updateDoc,options);
+            res.send(result);
+
+        })
+
+
 
 
         // post order
