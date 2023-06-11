@@ -24,6 +24,8 @@ async function run (){
         await client.connect();
         const collection = client.db("product_collection").collection("products");
         const orderCollection = client.db("order_collection").collection("orders");
+        const testimonialCollection = client.db("testimonial_collection").collection("testimonials");
+        const faqCollection = client.db("faq_collection").collection("faqs");
 
         // get all products data
         app.get('/products',async(req,res)=>{
@@ -79,6 +81,22 @@ async function run (){
             res.send(result);
         })
 
+        // edit cart item quantity
+        app.put('/cart_item/:id', async(req,res)=>{
+            const productId = req.params.id;
+
+            const filter = {_id: new ObjectId(productId)};
+            const options = {upsert: true};
+            const updateDoc = {
+                $set: {
+                    "orderDetails.paymentStatus" : 'paid'
+                }
+            };
+            const result = await orderCollection.updateOne(filter,updateDoc,options);
+            res.send(result);
+
+        })
+
 
 
         // add new product
@@ -86,7 +104,6 @@ async function run (){
             const newProduct = req.body;
             const result = await collection.insertOne(newProduct);
             res.send( result)
-            console.log(newProduct)
         });
 
         // get single product details for edit product
@@ -117,7 +134,30 @@ async function run (){
             const query = {_id: new ObjectId(productId)};
             const result = await collection.deleteOne(query);
             res.send(result);
-        })
+        });
+
+
+
+
+        // get testimonials
+        app.get('/testimonials', async(req,res)=>{
+            const query = {};
+            const cursor = testimonialCollection.find(query);
+            const products = await cursor.toArray();
+            res.send(products);
+
+        });
+
+
+
+
+        // get faqs
+        app.get('/faqs',async(req,res)=>{
+            const query = {};
+            const cursor = faqCollection.find(query);
+            const faqs = await cursor.toArray();
+            res.send(faqs);
+        });
     }finally{
         // client.close();
     }
