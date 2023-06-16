@@ -95,6 +95,17 @@ async function run (){
             res.send(order);
         });
 
+
+        // get orders by specific user email or name
+        app.get('/user-orders/:userEmailOrName',async(req,res)=>{
+            const user = req.params.userEmailOrName;
+            console.log(user);
+            const query = {"orderDetails.customerInfo": user, "orderDetails.paymentStatus":"paid"};
+            const cursor = orderCollection.find(query);
+            const orders = await cursor.toArray();
+            res.send(orders);
+        });
+
         // delete cart item
         app.delete('/user-order/:id',async(req,res)=>{
             const itemId = req.params.id;
@@ -103,7 +114,7 @@ async function run (){
             res.send(result);
         })
 
-        // edit cart item quantity
+        // edit cart item payment status
         app.put('/cart_item/:id', async(req,res)=>{
             const productId = req.params.id;
 
@@ -148,6 +159,22 @@ async function run (){
             };
             const result = await collection.updateOne(filter,updateDoc,options);
             res.send(result);
+        })
+
+
+        // edit product availability status
+        app.put('/manage_product/product/:id', async(req,res)=>{
+            const productId = req.params.id;
+            const filter = {_id: new ObjectId(productId)};
+            const options = {upsert: true};
+            const updateDoc = {
+                $set: {
+                    Status : 'Stock out',
+                    AVAILABILITY: 'Out of stock'
+                }            };
+            const result = await collection.updateOne(filter,updateDoc,options);
+            res.send(result);
+
         })
 
         // delete product from admin dashBoard
