@@ -50,29 +50,27 @@ async function run (){
             const id =  req.params.id;
 
             const options = {};
-            const query = {MODEL_ID: id};
+            const query = {_id: new ObjectId(id)};
             const product = await collection.findOne(query,options);
             res.send(product);
         });
-        // updating remaining quantity after order placed
+        // updating product quantity after order placed  or  deleting cart item
         app.put('/product/:id',async(req,res)=>{
             const id =  req.params.id;
-            console.log(id);
             const quantity = req.body;
+            console.log(quantity);
             const remainingQuantity = quantity.remainingQuantity;
-            console.log(remainingQuantity);
 
-
-            const filter = {MODEL_ID: id};
+            const filter = {_id: new ObjectId(id)};
             const options = {upsert: true};
             const updateDoc = {
                 $set: {
-                    AVAILABILITY : remainingQuantity
+                    AVAILABILITY : remainingQuantity,
+                    Status: 'Available'
                 }
             };
             const result = await collection.updateOne(filter,updateDoc,options);
             res.send(result);
-
         })
 
 
@@ -99,13 +97,20 @@ async function run (){
         // get orders by specific user email or name
         app.get('/user-orders/:userEmailOrName',async(req,res)=>{
             const user = req.params.userEmailOrName;
-            console.log(user);
             const query = {"orderDetails.customerInfo": user, "orderDetails.paymentStatus":"paid"};
             const cursor = orderCollection.find(query);
             const orders = await cursor.toArray();
             res.send(orders);
         });
 
+        // get a cart item data which will be deleted
+        app.get('/cart_item/:deleteCartItem',async(req,res)=>{
+            const cartItemId = req.params.deleteCartItem;
+            const query = {_id: new ObjectId(cartItemId)};
+            const result = await orderCollection.findOne(query);
+            res.send(result);
+
+        })
         // delete cart item
         app.delete('/user-order/:id',async(req,res)=>{
             const itemId = req.params.id;
